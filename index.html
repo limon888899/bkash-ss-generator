@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bKash স্ক্রিনশট জেনারেটর</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #f0f0f5;
+    min-height: 100vh;
+    display: flex;
+    gap: 0;
+  }
+
+  /* ===== LEFT: FORM PANEL ===== */
+  .form-panel {
+    width: 400px;
+    min-width: 400px;
+    background: #fff;
+    padding: 30px 24px;
+    overflow-y: auto;
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.08);
+  }
+
+  .form-panel h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e2136e;
+    margin-bottom: 6px;
+  }
+
+  .form-panel p.subtitle {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #f5e6ee;
+    padding-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 5px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="datetime-local"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #e2136e;
+  }
+
+  .charge-note {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  .btn-generate {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #e2136e, #c0105c);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(226,19,110,0.35);
+  }
+
+  .btn-generate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(226,19,110,0.45);
+  }
+
+  .btn-download {
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    color: #e2136e;
+    border: 2px solid #e2136e;
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    display: none;
+    transition: background 0.2s;
+  }
+
+  .btn-download:hover {
+    background: #fdf0f6;
+  }
+
+  /* ===== RIGHT: PREVIEW PANEL ===== */
+  .preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 30px;
+    background: #e8e8f0;
+    overflow-y: auto;
+  }
+
+  .preview-label {
+    font-size: 13px;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  /* ===== bKASH MOCK SCREEN ===== */
+  #bkash-screen {
+    width: 360px;
+    background: #fff;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 8px #222;
+    font-family: 'Hind Siliguri', sans-serif;
+    position: relative;
+  }
+
+  /* Status bar */
+  .status-bar {
+    background: #e2136e;
+    padding: 10px 16px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .status-bar .time { font-weight: 700; }
+  .status-icons { display: flex; gap: 5px; align-items: center; font-size: 11px; }
+
+  /* bKash top header */
+  .bk-header {
+    background: #e2136e;
+    padding: 0 0 20px;
+    text-align: center;
+  }
+
+  .bk-logo {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 0 0;
+  }
+
+  /* Content area */
+  .bk-body {
+    padding: 22px 20px 0;
+    background: #fff;
+  }
+
+  .success-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .success-text {
+    font-size: 18px;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .success-text span.highlight {
+    color: #e2136e;
+    font-weight: 700;
+  }
+
+  .success-text span.green {
+    color: #1a8c4e;
+    font-weight: 700;
+  }
+
+  .check-circle {
+    width: 44px;
+    height: 44px;
+    border: 2.5px solid #1a8c4e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .check-circle svg { stroke: #1a8c4e; }
+
+  /* Recipient row */
+  .recipient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 0;
+  }
+
+  .recipient-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    background: #b0bec5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .recipient-info .number {
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+  }
+
+  .recipient-info .number2 {
+    font-size: 13px;
+    color: #777;
+    margin-top: 1px;
+  }
+
+  .call-btn {
+    border: 1.5px solid #e2136e;
+    border-radius: 20px;
+    padding: 7px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #e2136e;
+    font-weight: 600;
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #fff;
+  }
+
+  /* Details grid */
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .detail-cell {
+    padding: 13px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .detail-cell:nth-child(odd) { border-right: 1px solid #f0f0f0; padding-right: 12px; }
+  .detail-cell:nth-child(even) { padding-left: 12px; }
+
+  .detail-cell .d-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .detail-cell .d-value {
+    font-size: 13.5px;
+    color: #222;
+    font-weight: 500;
+    word-break: break-all;
+  }
+
+  .detail-cell .d-value.pink { color: #e2136e; }
+
+  .txn-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .copy-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid #e2136e;
+    border-radius: 2px;
+    position: relative;
+    margin-left: 3px;
+  }
+
+  .total-cell {
+    grid-column: span 1;
+  }
+
+  .total-cell .d-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #222;
+  }
+
+  .total-sub {
+    font-size: 11.5px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  .balance-hidden {
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .eye-icon {
+    width: 20px;
+    height: 14px;
+    border: 1.5px solid #e2136e;
+    border-radius: 50%;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reference-cell {
+    grid-column: span 2;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Action buttons */
+  .action-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px 0 0;
+  }
+
+  .action-btn {
+    border: 1.5px solid #e2136e;
+    border-radius: 24px;
+    padding: 11px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #e2136e;
+    font-weight: 600;
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  /* Reward section */
+  .reward-section {
+    text-align: center;
+    padding: 20px 16px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 8px;
+  }
+
+  .star-badge {
+    width: 44px;
+    height: 44px;
+    background: #e2136e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+  }
+
+  .reward-text1 {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 2px;
+  }
+
+  .reward-text2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 4px;
+  }
+
+  .reward-text3 {
+    font-size: 12.5px;
+    color: #666;
+  }
+
+  .reward-link {
+    color: #e2136e;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  /* Home button */
+  .home-btn {
+    background: #e2136e;
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Hind Siliguri', sans-serif;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- FORM PANEL -->
+<div class="form-panel">
+  <h2>bKash স্ক্রিনশট জেনারেটর</h2>
+  <p class="subtitle">নিচের তথ্যগুলো পূরণ করুন, ডানে লাইভ প্রিভিউ দেখতে পাবেন।</p>
+
+  <div class="form-group">
+    <label>প্রাপকের মোবাইল নম্বর</label>
+    <input type="text" id="inp-number" placeholder="01XXXXXXXXX" value="01623477409">
+  </div>
+
+  <div class="form-group">
+    <label>টাকার পরিমাণ (৳)</label>
+    <input type="number" id="inp-amount" placeholder="10000" value="10000">
+    <div class="charge-note">* চার্জ স্বয়ংক্রিয়ভাবে যোগ হবে (৳5.00)</div>
+  </div>
+
+  <div class="form-group">
+    <label>চার্জ (৳)</label>
+    <input type="number" id="inp-charge" placeholder="5" value="5">
+  </div>
+
+  <div class="form-group">
+    <label>ট্রানজ্যাকশন আইডি <span style="font-size:11px;color:#e2136e;font-weight:400;">(স্ক্রিনশটে অটো পরিবর্তন হবে)</span></label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="text" id="inp-txn" placeholder="DEB23MC4QA" value="DEB23MC4QA" style="flex:1;">
+      <button onclick="randomTxn()" style="padding:10px 12px;background:#fdf0f6;border:1.5px solid #e2136e;border-radius:8px;color:#e2136e;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap;">🔀 র‍্যান্ডম</button>
+    </div>
+    <div class="charge-note">* প্রতিবার স্ক্রিনশট তৈরিতে নতুন আইডি জেনারেট হবে</div>
+  </div>
+
+  <div class="form-group">
+    <label>রেফারেন্স (ঐচ্ছিক)</label>
+    <input type="text" id="inp-reference" placeholder="রেফারেন্স লিখুন">
+  </div>
+
+  <div class="form-group">
+    <label>সময় ও তারিখ</label>
+    <input type="datetime-local" id="inp-datetime" value="2026-06-04T19:56">
+  </div>
+
+  <button class="btn-generate" onclick="updatePreview()">👁️ প্রিভিউ আপডেট করুন</button>
+  <button class="btn-generate" style="margin-top:10px; background: linear-gradient(135deg, #1a8c4e, #15703e);" onclick="generateImage()">📸 স্ক্রিনশট তৈরি করুন</button>
+  <button class="btn-download" id="btn-download" onclick="downloadImage()">⬇️ ডাউনলোড করুন</button>
+</div>
+
+<!-- PREVIEW PANEL -->
+<div class="preview-panel">
+  <div class="preview-label">লাইভ প্রিভিউ</div>
+
+  <div id="bkash-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="time" id="sc-time">7:56</span>
+      <div class="status-icons">
+        <span>0.40 KB/s</span>
+        <span>📶</span>
+        <span>🔋60%</span>
+      </div>
+    </div>
+
+    <!-- bKash Header (just pink bg continuation) -->
+    <div class="bk-header">
+      <div class="bk-logo">bKash</div>
+    </div>
+
+    <!-- Body -->
+    <div class="bk-body">
+      <!-- Success row -->
+      <div class="success-row">
+        <div class="success-text">
+          আপনার <span class="highlight">সেন্ড মানি</span> <span class="green">সফল হয়েছে</span>
+        </div>
+        <div class="check-circle">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <polyline points="4,11 9,16 18,6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Recipient -->
+      <div class="recipient-row">
+        <div class="recipient-left">
+          <div class="avatar">0</div>
+          <div class="recipient-info">
+            <div class="number" id="sc-number">01623477409</div>
+            <div class="number2" id="sc-number2">01623477409</div>
+          </div>
+        </div>
+        <div class="call-btn">
+          📞 কল
+        </div>
+      </div>
+
+      <!-- Details grid -->
+      <div class="details-grid">
+        <div class="detail-cell">
+          <div class="d-label">সময়</div>
+          <div class="d-value" id="sc-datetime">7:56pm 04/06/2026</div>
+        </div>
+        <div class="detail-cell">
+          <div class="d-label">ট্রানজেকশন আইডি</div>
+          <div class="d-value pink txn-copy">
+            <span id="sc-txn">DEB23MC4QA</span>
+            <span class="copy-icon"></span>
+          </div>
+        </div>
+        <div class="detail-cell total-cell">
+          <div class="d-label">সর্বমোট</div>
+          <div class="d-value" id="sc-total">৳10,005</div>
+          <div class="total-sub" id="sc-total-sub">৳10,000.00 + ৳5.00</div>
+        </div>
+        <div class="detail-cell">
+          <div class="d-label">নতুন ব্যালেন্স</div>
+          <div class="balance-hidden">
+            ******
+            <span style="color:#e2136e; font-size:14px;">⊘</span>
+          </div>
+        </div>
+        <div class="reference-cell detail-cell">
+          <div class="d-label">রেফারেন্স</div>
+          <div class="d-value" id="sc-reference"></div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="action-btns">
+        <div class="action-btn">⏱ অটো পে চালু করুন</div>
+        <div class="action-btn">↗ শেয়ার</div>
+      </div>
+
+      <!-- Reward section -->
+      <div class="reward-section">
+        <div class="star-badge">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="white">
+            <polygon points="11,2 13.5,8.5 20.5,8.5 15,13 17,20 11,16 5,20 7,13 1.5,8.5 8.5,8.5"/>
+          </svg>
+        </div>
+        <div class="reward-text1">আপনি অর্জন করেছেন</div>
+        <div class="reward-text2">বিকাশ রিওয়ার্ড পয়েন্ট</div>
+        <div class="reward-text3">পয়েন্ট ব্যবহার করতে <span class="reward-link">বিকাশ রিওয়ার্ডস</span> চেক করুন!</div>
+      </div>
+    </div>
+
+    <!-- Home button -->
+    <div class="home-btn">
+      <span>হোম-এ ফিরে যাই</span>
+      <span>→</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Generate random bKash-style transaction ID
+  function generateTxnId() {
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const prefix = Array.from({length:3}, () => letters[Math.floor(Math.random()*letters.length)]).join('');
+    const mid = Array.from({length:2}, () => digits[Math.floor(Math.random()*digits.length)]).join('');
+    const suffix = Array.from({length:2}, () => letters[Math.floor(Math.random()*letters.length)]).join('');
+    const end = Array.from({length:2}, () => digits[Math.floor(Math.random()*digits.length)]).join('');
+    const last = letters[Math.floor(Math.random()*letters.length)];
+    return prefix + mid + suffix + end + last;
+  }
+
+  function randomTxn() {
+    const newId = generateTxnId();
+    document.getElementById('inp-txn').value = newId;
+    updatePreview();
+  }
+
+  // Format number with commas
+  function formatNumber(n) {
+    return Number(n).toLocaleString('en-IN');
+  }
+
+  // Format datetime from input
+  function formatDatetime(val) {
+    if (!val) return '';
+    const d = new Date(val);
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2,'0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const h = hours % 12 || 12;
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${h}:${mins}${ampm} ${day}/${month}/${year}`;
+  }
+
+  function getStatusTime(val) {
+    if (!val) return '7:56';
+    const d = new Date(val);
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2,'0');
+    return `${hours}:${mins}`;
+  }
+
+  function updatePreview() {
+    const number = document.getElementById('inp-number').value || '01XXXXXXXXX';
+    const amount = parseFloat(document.getElementById('inp-amount').value) || 0;
+    const charge = parseFloat(document.getElementById('inp-charge').value) || 5;
+    const txn = document.getElementById('inp-txn').value || 'XXXXXXXXXX';
+    const reference = document.getElementById('inp-reference').value;
+    const datetime = document.getElementById('inp-datetime').value;
+
+    const total = amount + charge;
+
+    document.getElementById('sc-number').textContent = number;
+    document.getElementById('sc-number2').textContent = number;
+    document.getElementById('sc-total').textContent = '৳' + formatNumber(total);
+    document.getElementById('sc-total-sub').textContent = '৳' + formatNumber(amount) + '.00 + ৳' + charge.toFixed(2);
+    document.getElementById('sc-txn').textContent = txn;
+    document.getElementById('sc-reference').textContent = reference;
+    document.getElementById('sc-datetime').textContent = formatDatetime(datetime);
+    document.getElementById('sc-time').textContent = getStatusTime(datetime);
+  }
+
+  // Auto-update on any input change
+  document.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', updatePreview);
+  });
+
+  // Run once on load
+  updatePreview();
+
+  // Generate image
+  let generatedDataUrl = null;
+
+  async function generateImage() {
+    // Auto-generate new transaction ID each time
+    const newTxnId = generateTxnId();
+    document.getElementById('inp-txn').value = newTxnId;
+    updatePreview();
+
+    const screen = document.getElementById('bkash-screen');
+    const canvas = await html2canvas(screen, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+    generatedDataUrl = canvas.toDataURL('image/png');
+
+    const btn = document.getElementById('btn-download');
+    btn.style.display = 'block';
+    btn.textContent = '⬇️ ডাউনলোড করুন (PNG)';
+
+    // Show preview of generated image
+    let existingPreview = document.getElementById('generated-preview');
+    if (existingPreview) existingPreview.remove();
+
+    const img = document.createElement('img');
+    img.id = 'generated-preview';
+    img.src = generatedDataUrl;
+    img.style.cssText = 'margin-top:20px; max-width:360px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.2);';
+
+    const previewPanel = document.querySelector('.preview-panel');
+    previewPanel.appendChild(img);
+
+    alert('✅ স্ক্রিনশট তৈরি হয়েছে! নিচে স্ক্রল করুন বা ডাউনলোড বাটনে ক্লিক করুন।');
+  }
+
+  async function downloadImage() {
+    if (!generatedDataUrl) { await generateImage(); return; }
+    if (isCapacitor) {
+      try {
+        const { Filesystem, Directory } = window.Capacitor.Plugins;
+        const base64 = generatedDataUrl.split(',')[1];
+        const fileName = `bkash_${Date.now()}.png`;
+        await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.External,
+          recursive: true
+        });
+        showToast('✅ গ্যালারিতে সেভ হয়েছে: ' + fileName);
+      } catch (e) {
+        showToast('❌ সেভ হয়নি: ' + e.message);
+      }
+    } else {
+      const a = document.createElement('a');
+      a.href = generatedDataUrl;
+      a.download = `bkash_${Date.now()}.png`;
+      a.click();
+    }
+  }
+
+  // Toast notification
+  function showToast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 22px;border-radius:24px;font-size:14px;z-index:9999;font-family:Hind Siliguri,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.3);';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => { t.style.opacity = '0'; }, 3000);
+  }
+</script>
+</body>
+</html>
